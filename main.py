@@ -16,7 +16,7 @@ dict=dotenv_values()# load environment vars into dictionary (key-value pairs) fr
 class Zeke(commands.Bot):
     def __init__(self):
         super().__init__(command_prefix='!',intents=discord.Intents.all(),
-                       application_id=dict['APP_ID']) # status is dnd for no reason, application_id must be specified for sync() call
+                       application_id=dict['APP_ID']) # application_id must be specified for sync() call
                                                       # prefix is unused now that slash commands are added
 
     #runs when the bot has undergone its launch procedures [let's me know that it is functional in 'x' list of servers]

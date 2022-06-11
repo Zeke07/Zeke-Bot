@@ -49,6 +49,7 @@ class Henle(commands.GroupCog, group_name="henle"):
 
     # Search for any musical piece present on henle.de
     # Make an initial query, then choose from a list of fetched results to retrieve the contents
+    # I'm sure there are more robust ways of gathering the contents, but the tag structure was mostly consistent
     @app_commands.command(name="search", description="Search Henle for any musical piece")
     async def henle_search(self, interaction:discord.Interaction, query:str):
 

@@ -68,17 +68,17 @@ class MentalMath(commands.GroupCog, group_name="math"):
 
         # checking for valid input
         if (not user.startswith("<@")):
-            await interaction.response.send_message("\n\n\n`Error: the correct format for this command is '!math challenge <@user> <#rounds> <gamemode: either 'mc' or 'writing'>'`")
+            await interaction.response.send_message("\n`Error: the correct format for this command is '!math challenge <@user> <#rounds> <gamemode: either 'mc' or 'writing'>'`")
             self.clear_cmd(interaction)
             return
         if (rounds>=25 or rounds<1):
-            await interaction.response.send_message("\n\n`Invalid # of rounds (1-25 max)`")
+            await interaction.response.send_message("\n`Invalid # of rounds (1-25 max)`")
             self.clear_cmd(interaction)
             return
         modes=["mc","writing"]
 
         if mode.lower() not in modes:
-            await interaction.response.send_message("\n\n\n`Wrong mode specified: must be either 'mc' or 'writing'`")
+            await interaction.response.send_message("\n`Wrong mode specified: must be either 'mc' or 'writing'`")
             self.clear_cmd(interaction)
             return
 
@@ -90,7 +90,7 @@ class MentalMath(commands.GroupCog, group_name="math"):
         for member in self.bot.users:
             if (int(mentioned_userid)==int(member.id)):
                 challenge_embed=discord.Embed(colour=discord.Colour.dark_red()).add_field(name="Alert...",value=("<@{}> `has challenged` <@{}> `to a Mental Math Duel!`".format(interaction.user.id,mentioned_userid) +
-                                                       "\n\n*Do you accept?* (y/n)"))
+                                                       "\n*Do you accept?* (y/n)"))
                 await interaction.response.send_message(embed=challenge_embed)
                 def check(message):
                     return int(message.author.id)==int(mentioned_userid) and message.content.lower() in accept+decline
@@ -115,9 +115,9 @@ class MentalMath(commands.GroupCog, group_name="math"):
                             operators={0:lambda x,y: x+y, 1: lambda x,y: x-y, 2: lambda x,y: x*y}
                             operator_str={0:'+',1:'-',2:'*'}
                             operation_range={0: 500, 1: 500, 2:50}
-                            await interaction.channel.send("\n\n`Challenge Accepted!`")
+                            await interaction.channel.send("\n`Challenge Accepted!`")
                             time.sleep(1)
-                            await interaction.channel.send("\n\n`Ready?`")
+                            await interaction.channel.send("\n`Ready?`")
                             time.sleep(1)
                             await interaction.channel.send("\n`Steady?`")
                             time.sleep(1)
@@ -143,7 +143,7 @@ class MentalMath(commands.GroupCog, group_name="math"):
                                             # timeout if the user doesn't respond in time
                                             msg = await self.bot.wait_for('message', timeout=15.0, check=verify)
                                     except asyncio.TimeoutError:
-                                        await interaction.channel.send("\n\n`Answer not given in time, match terminated!`")
+                                        await interaction.channel.send("\n`Answer not given in time, match terminated!`")
                                         self.clear_cmd(interaction)
                                         return
                                     else:
@@ -189,7 +189,7 @@ class MentalMath(commands.GroupCog, group_name="math"):
                                     await interaction.channel.send(view=view)
                                     timeout=await view.wait()
                                     if (timeout):
-                                        await interaction.channel.send("\n\n`Correct answer not given in time, match terminated!`")
+                                        await interaction.channel.send("\n`Correct answer not given in time, match terminated!`")
                                         self.clear_cmd(interaction)
                                         return
 
@@ -197,7 +197,7 @@ class MentalMath(commands.GroupCog, group_name="math"):
                             if (participant_ids[interaction.user.id] != participant_ids[mentioned_userid]):
                                 winner = interaction.user.id if participant_ids[interaction.user.id] > participant_ids[
                                     mentioned_userid] else mentioned_userid
-                                await interaction.channel.send("\n\n`The winner is` <@{}> `with a score of {}!` {}".format(winner,participant_ids[winner],praise))
+                                await interaction.channel.send("\n`The winner is` <@{}> `with a score of {}!` {}".format(winner,participant_ids[winner],praise))
 
                                 # increment the win-count of the user in the server database
                                 server_id=interaction.guild_id
@@ -210,7 +210,7 @@ class MentalMath(commands.GroupCog, group_name="math"):
                                 self.clear_cmd(interaction)
                                 return
                             else:
-                                await interaction.channel.send("\n\n`We have a tie! None of y'all get jack`")
+                                await interaction.channel.send("\n`We have a tie! None of y'all get jack`")
                                 self.clear_cmd(interaction)
                                 return
 

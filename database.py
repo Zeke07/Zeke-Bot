@@ -14,7 +14,7 @@ db=dict()
 INSTANCE_DATA= {
         'server_id': 0,
          'math_leaderboard': {},
-        'banter': []
+        'banter': {} # a dictionary storing user id keys to list() values containing taunts
 
 }
 

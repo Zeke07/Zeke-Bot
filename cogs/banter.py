@@ -21,13 +21,6 @@ class Banter(commands.GroupCog, group_name="banter"):
     # add a taunt directed at a specific user to the server database
     @app_commands.command(name="add", description="add text taunts")
     async def add(self, interaction:discord.Interaction, target_user: str, taunt: str):
-        ''' code structure for sending banter (just an aesthetic thing)
-        taunt=self.generate_taunt(target=target,taunt=taunt)
-        if type(taunt)==discord.Embed:
-            await interaction.response.send_message(embed=taunt)
-        else:
-            await interaction.response.send_message(taunt)
-        '''
 
         if (not target_user.startswith("<@")):
             await interaction.response.send_message('`Target user must have an @`')

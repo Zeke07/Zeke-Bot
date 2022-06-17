@@ -1,5 +1,4 @@
 # Zeke-Bot Vers. 1.0, using Discord.py 2.0 
-A experiment...
 
 Motive: 
     The bulk of my coding experience came from Java, so I began building this bot as a means to work my way around Python and to formally acquire the langauge.  The commands I've presently added to the list of functionalities are a reflection of gaps in my programming skillset that I felt needed some illumination, including how to talk to a cloud database from a local program, web-scraping, etc.  

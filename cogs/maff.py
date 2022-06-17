@@ -5,7 +5,7 @@ Version Date: 6-9-2022
 Email: zaynalikhan@gmail.com
 Changes: 6-7(8)-2022 added interactive leaderboard (usability)
          6-8-2022 converted math to slash command (integrated with discord.py 2.0)
-         6-12-2022 added banter taunts to /math challenge
+         6-16-2022 condensing code, removing modes for /math challenge for sake of clarity
 
 '''
 import time
@@ -54,7 +54,7 @@ class MentalMath(commands.GroupCog, group_name="math"):
     # Mental Math game that generates a random question within reasonable number range (+,-, or *), updating
     # the leaderboard with the user that has the most points
     @app_commands.command(name="challenge", description="Challenge a server member to a mental math duel, for mode specify 'mc' or 'writing'")
-    async def challenge(self,interaction: discord.Interaction, user:str, rounds:int, mode:str):
+    async def challenge(self,interaction: discord.Interaction, user:str, rounds:int):
 
         if (user=="<@{}>".format(self.bot.user.id)): # don't challenge the bot
             await interaction.response.send_message("`Hey, you can't challenge me!`")
@@ -77,12 +77,6 @@ class MentalMath(commands.GroupCog, group_name="math"):
             return
         if (rounds>=25 or rounds<1):
             await interaction.response.send_message("\n\n`Invalid # of rounds (1-25 max)`")
-            self.clear_cmd(interaction)
-            return
-        modes=["mc","writing"]
-
-        if mode.lower() not in modes:
-            await interaction.response.send_message("\n\n\n`Wrong mode specified: must be either 'mc' or 'writing'`")
             self.clear_cmd(interaction)
             return
 
@@ -135,79 +129,57 @@ class MentalMath(commands.GroupCog, group_name="math"):
                                 await interaction.channel.send(embed=discord.Embed(title="`Question {}.`".format(i+1),
                                                                            description="**`{}{}{}`**".format(operand_one,operator_str[operation_index],operand_two), colour=discord.Colour.dark_purple()))
                                 answer=operators[operation_index](operand_one,operand_two)
-                                if (mode.lower()=="writing"): #writing mode - look for text input from one of the game participants
-                                    def verify(message):
-                                        digit=message.content
-                                        if (not message.content.isdigit() and not (digit[0]=="-" and digit[1:].isdigit())):
-                                            return False
-                                        return message.author.id in participant_ids.keys() and int(message.content)==answer
-                                    try:
-                                            # listen for message, check if it is the challenged user
-                                            # return value is the message that 'check' validates
-                                            # timeout if the user doesn't respond in time
-                                            msg = await self.bot.wait_for('message', timeout=15.0, check=verify)
-                                    except asyncio.TimeoutError:
-                                        await interaction.channel.send("\n\n`Answer not given in time, match terminated!`")
-                                        self.clear_cmd(interaction)
-                                        return
+
+                                # multiple-choice mode - generate several buttons with random values (close to the answer), one is the correct answer
+
+
+                                # callback if the wrong button is pressed
+                                # decrement user's score, continue to next iteration naturally
+                                # taunt the user
+                                async def fail(interaction:discord.Interaction):
+                                    u=interaction.user.id
+                                    if u in participant_ids.keys():
+                                        await interaction.response.send_message("<@{}> `is Wrong! (-1)` {}".format(u,wrong))
+                                        target=str(u)
+                                        if (miscellaneous.taunts_available(guild_id=server_id,user_id=target)):
+                                            size = len(database.db[server_id]['banter'][target])
+                                            taunt = miscellaneous.generate_taunt(target=target, taunt=
+                                            database.db[server_id]['banter'][target][random.randint(0, size-1)])
+                                            await interaction.followup.send(taunt)
+
+                                        participant_ids[u] = participant_ids[u] - 1
                                     else:
-                                        participant_ids[msg.author.id]=participant_ids[msg.author.id]+1
-                                        await interaction.channel.send("<@{}> `has scored a point!` {}".format(msg.author.id,rt))
+                                        await interaction.response.defer()
 
-                                else:  # multiple-choice mode - generate several buttons with random values (close to the answer), one is the correct answer
-                                    nextQuestion=False
+                                # callback for the single correct button
+                                # increment user's score, continue to the next question by halting the current button-populated view
+                                async def success(interaction:discord.Interaction):
+                                    u=interaction.user.id
+                                    if u in participant_ids.keys():
+                                        await interaction.response.send_message("<@{}> `has scored a point! (+1)` {}".format(u,rt))
+                                        participant_ids[u] = participant_ids[u] + 1
+                                        view.stop()
+                                    else:
+                                        await interaction.response.defer()
 
-                                    # callback if the wrong button is pressed
-                                    # decrement user's score, continue to next iteration naturally
-                                    # taunt the user
-                                    async def fail(interaction:discord.Interaction):
-                                        u=interaction.user.id
-                                        if u in participant_ids.keys():
-                                            await interaction.response.send_message("<@{}> `is Wrong!` {}".format(u,wrong))
-                                            target=str(u)
-                                            if (miscellaneous.taunts_available(guild_id=server_id,
-                                                                               user_id=target)):
-                                                size = len(database.db[server_id]['banter'][target])
-                                                taunt = miscellaneous.generate_taunt(target=target, taunt=
-                                                database.db[server_id]['banter'][target][
-                                                    random.randint(0, size)])
-                                                if type(taunt) == discord.Embed:
-                                                    await interaction.followup.send(embed=taunt)
-                                                else:
-                                                    await interaction.followup.send(taunt)
-                                            participant_ids[u] = participant_ids[u] - 1
-                                        else:
-                                            await interaction.response.defer()
-
-                                    # callback for the single correct button
-                                    # increment user's score, continue to the next question by halting the current button-populated view
-                                    async def success(interaction:discord.Interaction):
-                                        u=interaction.user.id
-                                        if u in participant_ids.keys():
-                                            await interaction.response.send_message("<@{}> `has scored a point!` {}".format(u,rt))
-                                            participant_ids[u] = participant_ids[u] + 1
-                                            view.stop()
-                                        else:
-                                            await interaction.response.defer()
-
-                                    buttons=[discord.ui.Button(label=f"{answer}",style=discord.ButtonStyle.blurple)]
-                                    buttons[0].callback=success
-                                    view = discord.ui.View(timeout=40) # users have 40 seconds to answer, or the match terminates, View houses the discord Buttons
-                                    for i in range(1,10):
+                                buttons=[discord.ui.Button(label=f"{answer}",style=discord.ButtonStyle.blurple)]
+                                buttons[0].callback=success
+                                view = discord.ui.View(timeout=40) # users have 40 seconds to answer, or the match terminates, View houses the discord Buttons
+                                for i in range(1,10):
+                                    a=random.randint(answer-50,answer+50)
+                                    while (a==answer):
                                         a=random.randint(answer-50,answer+50)
-                                        while (a==answer):
-                                            a=random.randint(answer-50,answer+50)
-                                        buttons.append(discord.ui.Button(label=f"{a}",style=discord.ButtonStyle.blurple))
-                                        buttons[i].callback=fail
-                                    random.shuffle(buttons) #shuffle button order (the correct one is instantiated first so it would be too easy otherwise)
-                                    for item in buttons:
-                                        view.add_item(item)
-                                    await interaction.channel.send(view=view)
-                                    timeout=await view.wait()
-                                    if (timeout):
-                                        await interaction.channel.send("\n\n`Correct answer not given in time, match terminated!`")
-                                        self.clear_cmd(interaction)
-                                        return
+                                    buttons.append(discord.ui.Button(label=f"{a}",style=discord.ButtonStyle.blurple))
+                                    buttons[i].callback=fail
+                                random.shuffle(buttons) #shuffle button order (the correct one is instantiated first so it would be too easy otherwise)
+                                for item in buttons:
+                                    view.add_item(item)
+                                await interaction.channel.send(view=view)
+                                timeout=await view.wait()
+                                if (timeout):
+                                    await interaction.channel.send("\n\n`Correct answer not given in time, match terminated!`")
+                                    self.clear_cmd(interaction)
+                                    return
 
                             # update the winner based on the superior count stored in a dictionary of user ids
                             if (participant_ids[interaction.user.id] != participant_ids[mentioned_userid]):
@@ -233,13 +205,11 @@ class MentalMath(commands.GroupCog, group_name="math"):
                     else:
                         # if a user has declined the match, taunt them!
                         await interaction.channel.send("<@{}> `has declined the challenge!`".format(mentioned_userid))
+
                         if (miscellaneous.taunts_available(guild_id=server_id, user_id=mentioned_userid)):
                             size = len(database.db[server_id]['banter'][mentioned_userid])
-                            taunt = miscellaneous.generate_taunt(target=mentioned_userid, taunt=database.db[server_id]['banter'][mentioned_userid][random.randint(0, size)])
-                            if type(taunt) == discord.Embed:
-                                await interaction.followup.send(embed=taunt)
-                            else:
-                                await interaction.followup.send(taunt)
+                            taunt = miscellaneous.generate_taunt(target=mentioned_userid, taunt=database.db[server_id]['banter'][mentioned_userid][random.randint(0, size-1)])
+                            await interaction.followup.send(taunt)
                         self.clear_cmd(interaction)
                         return
 

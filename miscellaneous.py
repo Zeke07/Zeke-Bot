@@ -2,12 +2,11 @@
 Zeke Bot - Class for miscellaneous tasks such as checking for the existence of data in the server document
 or initializing data for the functionality of specific cogs if missing
 Author: Zayn Khan
-Version Date: 6-12-2022
+Version Date: 6-16-2022
 Email: zaynalikhan@gmail.com
 
 '''
 import database
-import discord
 import validators
 
 '''
@@ -30,6 +29,6 @@ def initialize_banters(guild_id, user_id):
 # generate a taunt message to be sent by any command
 def generate_taunt(target: str, taunt: str):
     if (validators.url(taunt)):
-        return f'{target}: {taunt}'
+        return f'<@{target}>: {taunt}'
     else:
-        return discord.Embed(colour=discord.Colour.dark_red(), description=f'`{taunt}`').add_field(name="\u200b",value=f'<@{target}>')
+        return f'<@{target}>: `{taunt}`'

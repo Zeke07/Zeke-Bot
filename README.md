@@ -14,7 +14,7 @@ Help: endlessly wrangling api documentation, stackoverflow, and a thanks to my f
   /henle uses the domain henle.de (visit for more info) to query for a musical piece (in categories such as Classical Piano)
   present on the site.  Pick a search result and receive info on the piece/suite inclusive of difficulty, biography, and more.
   
-  /banter (Work-in-progress) add textual taunts that are randomly generated and sent by the bot
+  /banter add taunts (text or embed) that are randomly generated when taunts are invoked by bot functions (remove func in-progress)
   
 
 

@@ -1,4 +1,4 @@
-# Zeke-Bot Vers. 1.0, using Discord.py 2.0 
+# Zeke-Bot v1.0, using Discord.py 2.0 
 
     Update: now deployed in 24/7 GCP Linux machine (using TMUX session to run offline)
 Motive: 

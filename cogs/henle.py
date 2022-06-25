@@ -9,7 +9,7 @@ Changes: bug fixes to scraper, interactive embeds
 import discord
 from discord.ext import commands
 from discord import app_commands
-
+from miscellaneous import Interact
 from bs4 import BeautifulSoup
 import requests
 import math
@@ -22,6 +22,7 @@ class Henle(commands.GroupCog, group_name="henle"):
         self.url="https://www.henle.de"
         self.item_query={} # important for usability, the user can simply input a number and it will fetch that item
         self.num_results=0 # the # of search results
+
 
     # helper for generating embed pages containing the search results
     # follows a similar procedure to generating the leaderboard (see /math leaderboard)
@@ -49,7 +50,6 @@ class Henle(commands.GroupCog, group_name="henle"):
 
     # Search for any musical piece present on henle.de
     # Make an initial query, then choose from a list of fetched results to retrieve the contents
-    # I'm sure there are more robust ways of gathering the contents, but the tag structure was mostly consistent
     @app_commands.command(name="search", description="Search Henle for any musical piece")
     async def henle_search(self, interaction:discord.Interaction, query:str):
 
@@ -68,9 +68,13 @@ class Henle(commands.GroupCog, group_name="henle"):
             await interaction.response.send_message(f'`No results found!`')
             return
         for i in search_results:
-            key = i.find("h2", {"class": "sub-title"}).string + " - " + i.find("h2", {"class": "main-title"}).string
-            href = i.find("a", {"class": "cover-wrapper"})['href']
-            result_dictionary[key] = "https://www.henle.de" + href
+            sub_title=i.find("h2", {"class": "sub-title"})
+            main_title=i.find("h2", {"class": "main-title"})
+            hyper=i.find("a", {"class": "cover-wrapper"})
+            if (sub_title is not None and main_title is not None and hyper is not None):
+                key = sub_title.string + " - " + main_title.string
+                href = hyper['href']
+                result_dictionary[key] = "https://www.henle.de" + href
 
         # show the search results
         # when generate page is called, the instance's item_query dictionary will store the title key of piece (used to fetch the hyperlink-
@@ -94,9 +98,10 @@ class Henle(commands.GroupCog, group_name="henle"):
             msg = await self.bot.wait_for('message', timeout=60.0, check=check)
         except asyncio.TimeoutError:
             # terminate if the user doesn't respond
-            self.item_query = {}
-            self.num_results = 0
-            await interaction.followup.send("`Response not given in time`")
+            if (not view.is_finished()):
+                self.item_query = {}
+                self.num_results = 0
+                await interaction.followup.send("`Response not given in time`")
             return
 
         redirect=int(msg.content)
@@ -134,6 +139,16 @@ class Henle(commands.GroupCog, group_name="henle"):
         # display the parsed information in a single embed that links to the henle page
         # terminate after the user hits exit, or if the embed times out
         final_view=Interact(num_pages=0,embeds=[],timeout=120)
+
+        # playback for a piece
+        play=discord.ui.Button(label='Play',style=discord.ButtonStyle.green)
+        curr_button=play
+        async def play_callback(interaction:discord.Interaction):
+            await interaction.response.defer()
+        curr_button.callback=play_callback
+        final_view.add_item(curr_button)
+
+
         c=1
         description=f'`Description: \n{composition_description}`'
         for elem in piece_stats:
@@ -148,44 +163,6 @@ class Henle(commands.GroupCog, group_name="henle"):
         self.num_results = 0
         return
 
-
-
-
-
-# Overwritten discord view for ease of access
-class Interact(discord.ui.View):
-    def __init__(self, num_pages, embeds: [discord.Embed], timeout):
-        super().__init__()
-        self.pages=num_pages
-        # the search results will usually have multiple pages, and we want to update the message with
-        # a discord embed at a new given index in the array depending on if they hit back or next
-        self.embed_pos=0
-        self.embeds=embeds
-        self.timeout=timeout
-
-    async def on_timeout(self):
-            await self.message.delete()
-            self.stop()
-
-    @discord.ui.button(label="Back", style=discord.ButtonStyle.gray)
-    async def previous(self, interaction: discord.Interaction, button: discord.ui.Button):
-        if (self.embed_pos - 1 >= 0): # move back a page, if applicable
-            self.embed_pos = self.embed_pos - 1
-            await self.message.edit(embed=self.embeds[self.embed_pos])
-        await interaction.response.defer()
-
-    @discord.ui.button(label="Next", style=discord.ButtonStyle.green)
-    async def next(self, interaction: discord.Interaction, button: discord.ui.Button):
-        if (self.embed_pos + 1 <= self.pages): # move up a page, if applicable
-            self.embed_pos = self.embed_pos + 1
-            await self.message.edit(embed=self.embeds[self.embed_pos])
-        await interaction.response.defer()
-
-    @discord.ui.button(label="Exit", style=discord.ButtonStyle.danger)
-    async def exit(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.send_message("`Exiting search...`")
-        await self.message.delete()
-        self.stop()
 
 
 async def setup(bot: commands.Bot):

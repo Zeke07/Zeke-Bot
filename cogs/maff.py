@@ -98,7 +98,7 @@ class MentalMath(commands.GroupCog, group_name="math"):
                     # timeout if the user doesn't respond in time
                     msg=await self.bot.wait_for('message', timeout=30.0,check=check)
                 except asyncio.TimeoutError:
-                    await interaction.response.send_message("`Challenge response not given in time`")
+                    await interaction.followup.send("`Challenge response not given in time`")
                     self.clear_cmd(interaction)
                     return
                 else:
@@ -302,7 +302,7 @@ class MentalMath(commands.GroupCog, group_name="math"):
         timeout=await view.wait()
 
         if (timeout):
-            await interaction.response.send_message("`Closing Leaderboard...`")
+            await interaction.followup.send("`Closing Leaderboard...`")
             view.stop()
             await leaderboard.delete()
         return

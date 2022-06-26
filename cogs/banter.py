@@ -37,7 +37,7 @@ class Banter(commands.GroupCog, group_name="banter"):
 
     # /banter add
     # add a taunt directed at a specific user to the server database
-    @app_commands.command(name="add", description="add text taunts")
+    @app_commands.command(name="add", description="add a taunt for a given user (text or url)")
     async def add(self, interaction:discord.Interaction, target_user: str, taunt:str):
         if (not target_user.startswith("<@")):
             await interaction.response.send_message('`Target user must have an @`')
@@ -69,7 +69,7 @@ class Banter(commands.GroupCog, group_name="banter"):
 
     # /banter remove
     # display or remove taunts for a specific user
-    @app_commands.command(name="remove", description="add text taunts")
+    @app_commands.command(name="remove", description="remove taunts for a given user")
     async def remove(self, interaction: discord.Interaction, target_user: str):
         if (not target_user.startswith("<@")):
             await interaction.response.send_message('`Target user must have an @`')

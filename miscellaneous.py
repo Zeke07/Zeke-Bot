@@ -23,6 +23,7 @@ def taunts_available(guild_id, user_id) -> bool:
 
 # initialize the user key in the database if not yet added
 def initialize_banters(guild_id, user_id):
+    database.add_instance(guild_id)
     if str(user_id) not in database.db[guild_id]['banter'].keys():
         database.db[guild_id]['banter'].update({f'{user_id}': []})
         to_store = database.db[guild_id]['banter']

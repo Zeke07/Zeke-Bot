@@ -29,11 +29,6 @@ class MentalMath(commands.GroupCog, group_name="math"):
         self.embed_pos=0 # the current page number being visited (scroll to leaderboard() for more detail)
 
 
-    # a dummy command I used for debugging slash command sync
-    @app_commands.command(name='add', description="add two given operands")
-    async def add(self, interaction: discord.Interaction, operand_zero:int, operand_one:int):
-        await interaction.response.send_message(operand_zero+operand_one)
-
     # check running_commands for a running game
     def prevent_spam(self, interaction: discord.Interaction) -> bool:
         if (interaction.channel_id in self.running_commands):

@@ -1,6 +1,6 @@
 # Zeke-Bot v1.0, using Discord.py 2.0 
 
-    Update: now deployed in 24/7 GCP Linux machine (using TMUX session to run offline)
+    Update: now deployed in 24/7 GCP Linux machine (using TMUX session to run while offline)
 Motive: 
     The bulk of my coding experience came from Java, so I began building this bot as a means to work my way around Python and to formally acquire the langauge.  The commands I've presently added to the list of functionalities are a reflection of gaps in my programming skillset that I felt needed some illumination, including how to talk to a cloud database from a local program, web-scraping, etc.  
 

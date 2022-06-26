@@ -10,13 +10,13 @@ from discord import app_commands
 import database
 import miscellaneous
 import random
-from miscellaneous import Interact
 class Banter(commands.GroupCog, group_name="banter"):
     def __init__(self, bot: commands.Bot):
         super().__init__()
         self.bot=bot
 
-    
+    # /banter say
+    # utter a random taunt from a user's cache
     @app_commands.command(name="say", description="utter a taunt")
     async def say(self, interaction:discord.Interaction, target_user:str):
         if (not target_user.startswith("<@")):
@@ -34,6 +34,7 @@ class Banter(commands.GroupCog, group_name="banter"):
         else:
             await interaction.response.send_message("`No taunts available for this user, use '/banter add' to create one`")
             return
+
     # /banter add
     # add a taunt directed at a specific user to the server database
     @app_commands.command(name="add", description="add text taunts")
@@ -52,13 +53,17 @@ class Banter(commands.GroupCog, group_name="banter"):
         # the DB 'banter' key in the document stores keys of user_ids, each referring to
         # a list full of taunts directed at that specific user
         database.add_instance(server_id)
-        database.db[server_id]['banter'][mem_id].append(taunt)
-        to_store=database.db[server_id]['banter']
-        database.store_data(key='banter',guild_id=server_id,data=to_store)
+        if (len(database.db[server_id]['banter'][mem_id])<25):
+            database.db[server_id]['banter'][mem_id].append(taunt)
+            to_store=database.db[server_id]['banter']
+            database.store_data(key='banter',guild_id=server_id,data=to_store)
+            await interaction.response.send_message(f'`Updated banter for` {target_user}')
+        else:
+            await interaction.response.send_message(f'`Failed: maximum capacity of taunts for each user is 25`')
 
-        await interaction.response.send_message(f'`Updated banter for` {target_user}')
-        
-    # INCOMPLETE, selection menu soon to be added to properly implement removal function
+
+
+    # RECENTLY ADDED
     # /banter remove
     # display or remove taunts for a specific user
     @app_commands.command(name="remove", description="add text taunts")
@@ -69,7 +74,6 @@ class Banter(commands.GroupCog, group_name="banter"):
 
         server_id = interaction.guild_id
         mem_id = target_user[3:len(target_user) - 1]
-        print(mem_id)
         banter=database.db[server_id]['banter']
         if not mem_id in banter.keys():
             await interaction.response.send_message("`Target user has no taunts to display, use '/banter add' to create one`")
@@ -81,38 +85,50 @@ class Banter(commands.GroupCog, group_name="banter"):
         descriptions=[""]
         index=0
         count=1
-        single_page=True
+        options=dict()
         for taunt in to_display:
             if (len(descriptions[index]+taunt)<=4096):
-                descriptions[index]+=f'\n`{count}. {taunt}`'
+                descriptions[index]+=f'\n`{count}.` {taunt}'
+                options[count]=taunt
                 count+=1
             else:
                 descriptions.append("")
                 index+=1
-                descriptions[index]+=f'\n`{count}. {taunt}`'
+                descriptions[index]+=f'\n`{count}.` {taunt}'
+                options[count]=taunt
                 count+=1
         pages=len(descriptions)
         count=1
         for desc in descriptions:
             embeds.append(discord.Embed(title=f"`Banter for {member.name}#{member.discriminator}`", description=desc, colour=discord.Colour.dark_orange()).set_footer(text=f'Page {count}/{pages}'))
             count+=1
-       
-        #await interaction.response.send_message(embed=embeds[0])
-        #await interaction.followup.send(embed=embeds[1])
 
-        '''
-                   description=""
-                   if (len(taunt+description)<=5):
-                       description+=f'\n`{count}. {taunt}`'
-                       count+=1
-                   else:
-                       single_page=False
-                       embeds.append(discord.Embed(title=f"`Banter for {member.name}#{member.discriminator}`", description=description))
-                       description=""
+        async def upon_select(interaction:discord.Interaction):
+            to_remove=interaction.data['values'][0]
+            database.db[server_id]['banter'][mem_id].remove(to_remove)
+            curr_options=select_menu.options
+            for opt in curr_options:
+                if opt.value==to_remove:
+                    curr_options.remove(opt)
+            view.remove_item(select_menu)
+            select_menu.options=curr_options
+            view.add_item(select_menu)
+            to_store=database.db[server_id]['banter']
+            database.store_data(key='banter', guild_id=server_id, data=to_store)
+            await view.message.edit(view=view)
+            await interaction.response.send_message("`Taunt deleted`")
 
-               if single_page:
-                   embeds.append(discord.Embed(title=f"`Banter for {member.name}#{member.discriminator}`", description=description))
-        '''
+        view=miscellaneous.Interact(num_pages=len(embeds),embeds=embeds, timeout=60)
+        select_menu=discord.ui.Select(placeholder="Removed upon selection")
+
+        for item in options.keys():
+            select_menu.add_option(label=item,value=options[item])
+
+        view.add_item(select_menu)
+        select_menu.callback=upon_select
+        await interaction.response.send_message(embed=embeds[0],view=view)
+        view.message = await interaction.original_message()
+
 
 
 

@@ -2,7 +2,7 @@
 
     Update: now deployed in 24/7 GCP Linux machine (using TMUX session to run while offline)
 Motive: 
-    The bulk of my coding experience came from Java, so I began building this bot as a means to work my way around Python and to formally acquire the langauge.  The commands I've presently added to the list of functionalities are a reflection of gaps in my programming skillset that I felt needed some illumination, including how to talk to a cloud database from a local program, web-scraping, etc.  However, for some of them, I simply wanted to add them because they were fun  
+    The bulk of my coding experience came from Java, so I began building this bot as a means to work my way around Python and to formally acquire the langauge.  The commands I've presently added to the list of functionalities are a reflection of gaps in my programming skillset that I felt needed some illumination, including how to talk to a cloud database from a local program, web-scraping, etc.  However, for some of them, I simply wanted to add them because they were fun. 
 
 Working Tools: Discord 2.0 API, MongoDB, BS4, GCP (for deployment)
 

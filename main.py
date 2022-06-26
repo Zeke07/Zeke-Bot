@@ -38,6 +38,11 @@ class Zeke(commands.Bot):
     #not entirely necessary yet, but will be once I host the bot in a vm
     async def close(self):
         await super().close()
+    
+    # delete guild data from the database if the bot is kicked
+    async def on_guild_remove(self, guild: discord.Guild):
+        database.remove_data(guild.id)
+        print(f"{guild.name} deleted from database!")
 
 
 zeke_client=Zeke()

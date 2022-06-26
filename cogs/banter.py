@@ -52,7 +52,6 @@ class Banter(commands.GroupCog, group_name="banter"):
         # add taunt to list in database keyed by user's id
         # the DB 'banter' key in the document stores keys of user_ids, each referring to
         # a list full of taunts directed at that specific user
-        database.add_instance(server_id)
         if taunt in database.db[server_id]['banter'][mem_id]:
             await interaction.response.send_message(f'`Taunt already exists!`')
             return

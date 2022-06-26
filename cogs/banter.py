@@ -53,6 +53,9 @@ class Banter(commands.GroupCog, group_name="banter"):
         # the DB 'banter' key in the document stores keys of user_ids, each referring to
         # a list full of taunts directed at that specific user
         database.add_instance(server_id)
+        if taunt in database.db[server_id]['banter'][mem_id]:
+            await interaction.response.send_message(f'`Taunt already exists!`')
+            return
         if (len(database.db[server_id]['banter'][mem_id])<25):
             database.db[server_id]['banter'][mem_id].append(taunt)
             to_store=database.db[server_id]['banter']
@@ -63,7 +66,7 @@ class Banter(commands.GroupCog, group_name="banter"):
 
 
 
-    # RECENTLY ADDED
+
     # /banter remove
     # display or remove taunts for a specific user
     @app_commands.command(name="remove", description="add text taunts")
@@ -72,13 +75,19 @@ class Banter(commands.GroupCog, group_name="banter"):
             await interaction.response.send_message('`Target user must have an @`')
             return
 
+        # always initialize mongodb before checking contents
         server_id = interaction.guild_id
+        database.add_instance(server_id)
         mem_id = target_user[3:len(target_user) - 1]
-        banter=database.db[server_id]['banter']
-        if not mem_id in banter.keys():
+        miscellaneous.initialize_banters(server_id, mem_id)
+        banter = database.db[server_id]['banter']
+        
+        # no taunts to display
+        if len(banter[mem_id])==0:
             await interaction.response.send_message("`Target user has no taunts to display, use '/banter add' to create one`")
             return
 
+        # fetch taunts, initialize embed descriptions for each page (cannot exceed 4096 when the next taunt is concatenated)
         member = self.bot.get_user(int(mem_id))
         to_display=banter[mem_id]
         embeds=[]
@@ -99,10 +108,14 @@ class Banter(commands.GroupCog, group_name="banter"):
                 count+=1
         pages=len(descriptions)
         count=1
+        
+        # each description string in the array represents a page, intialize them
         for desc in descriptions:
             embeds.append(discord.Embed(title=f"`Banter for {member.name}#{member.discriminator}`", description=desc, colour=discord.Colour.dark_orange()).set_footer(text=f'Page {count}/{pages}'))
             count+=1
 
+        # callback for the select menu
+        # each time a number is selected, the item is deleted and the menu is refreshed
         async def upon_select(interaction:discord.Interaction):
             to_remove=interaction.data['values'][0]
             database.db[server_id]['banter'][mem_id].remove(to_remove)
@@ -115,11 +128,18 @@ class Banter(commands.GroupCog, group_name="banter"):
             view.add_item(select_menu)
             to_store=database.db[server_id]['banter']
             database.store_data(key='banter', guild_id=server_id, data=to_store)
-            await view.message.edit(view=view)
-            await interaction.response.send_message("`Taunt deleted`")
+            if (len(curr_options)<1):
+                await interaction.response.send_message("`Taunt deleted, session ended`")
+                await view.message.delete()
+                view.stop()
 
+            else:
+                await view.message.edit(view=view)
+                await interaction.response.send_message("`Taunt deleted`")
+
+        # create view display with interactive menu, listen for interactions
         view=miscellaneous.Interact(num_pages=len(embeds),embeds=embeds, timeout=60)
-        select_menu=discord.ui.Select(placeholder="Removed upon selection")
+        select_menu=discord.ui.Select(placeholder="Select taunt # (Removed upon selection)")
 
         for item in options.keys():
             select_menu.add_option(label=item,value=options[item])

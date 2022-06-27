@@ -10,6 +10,7 @@ from discord import app_commands
 import database
 import miscellaneous
 import random
+import re
 class Banter(commands.GroupCog, group_name="banter"):
     def __init__(self, bot: commands.Bot):
         super().__init__()
@@ -22,8 +23,9 @@ class Banter(commands.GroupCog, group_name="banter"):
         if (not target_user.startswith("<@")):
             await interaction.response.send_message('`Target user must have an @`')
             return
-        mentioned_userid = target_user[3:len(target_user) - 1]
+        mentioned_userid = re.search(pattern=r'\d+', string=target_user).group()
         server_id=interaction.guild_id
+
         if (miscellaneous.taunts_available(guild_id=server_id, user_id=mentioned_userid)):
             size = len(database.db[server_id]['banter'][mentioned_userid])
             taunt = miscellaneous.generate_taunt(target=mentioned_userid,
@@ -37,7 +39,7 @@ class Banter(commands.GroupCog, group_name="banter"):
 
     # /banter add
     # add a taunt directed at a specific user to the server database
-    @app_commands.command(name="add", description="add a taunt for a given user (text or url)")
+    @app_commands.command(name="add", description="add a taunt for a given user (text or url")
     async def add(self, interaction:discord.Interaction, target_user: str, taunt:str):
         if (not target_user.startswith("<@")):
             await interaction.response.send_message('`Target user must have an @`')
@@ -46,7 +48,7 @@ class Banter(commands.GroupCog, group_name="banter"):
             await interaction.response.send_message('`Taunt is too long (longer than 4096 characters)`')
 
         server_id=interaction.guild_id
-        mem_id=target_user[3:len(target_user)-1]
+        mem_id=re.search(pattern=r'\d+', string=target_user).group()
         miscellaneous.initialize_banters(server_id, mem_id)
 
         # add taunt to list in database keyed by user's id
@@ -77,10 +79,10 @@ class Banter(commands.GroupCog, group_name="banter"):
         # always initialize mongodb before checking contents
         server_id = interaction.guild_id
         database.add_instance(server_id)
-        mem_id = target_user[3:len(target_user) - 1]
+        mem_id = re.search(pattern=r'\d+', string=target_user).group()
         miscellaneous.initialize_banters(server_id, mem_id)
         banter = database.db[server_id]['banter']
-        
+
         # no taunts to display
         if len(banter[mem_id])==0:
             await interaction.response.send_message("`Target user has no taunts to display, use '/banter add' to create one`")
@@ -107,7 +109,7 @@ class Banter(commands.GroupCog, group_name="banter"):
                 count+=1
         pages=len(descriptions)
         count=1
-        
+
         # each description string in the array represents a page, intialize them
         for desc in descriptions:
             embeds.append(discord.Embed(title=f"`Banter for {member.name}#{member.discriminator}`", description=desc, colour=discord.Colour.dark_orange()).set_footer(text=f'Page {count}/{pages}'))

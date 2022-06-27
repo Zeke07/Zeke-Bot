@@ -8,6 +8,7 @@ Changes: 6-7(8)-2022 added interactive leaderboard (usability)
          6-16-2022 condensing code, removing modes for /math challenge for sake of clarity
 
 '''
+import re
 import time
 import random
 import asyncio
@@ -27,6 +28,7 @@ class MentalMath(commands.GroupCog, group_name="math"):
         self.running_commands=set() #temporary solution for preventing spam on the bot
                                    #if the current channel is running a game (id present in the set), wait until it is completed
         self.embed_pos=0 # the current page number being visited (scroll to leaderboard() for more detail)
+
 
 
     # check running_commands for a running game
@@ -50,7 +52,7 @@ class MentalMath(commands.GroupCog, group_name="math"):
     # the leaderboard with the user that has the most points
     @app_commands.command(name="challenge", description="Challenge a server member to a mental math duel, for mode specify 'mc' or 'writing'")
     async def challenge(self,interaction: discord.Interaction, user:str, rounds:int):
-
+        print(user)
         if (user=="<@{}>".format(self.bot.user.id)): # don't challenge the bot
             await interaction.response.send_message("`Hey, you can't challenge me!`")
             return
@@ -77,8 +79,7 @@ class MentalMath(commands.GroupCog, group_name="math"):
 
         accept=['y', 'yes']
         decline=['n','no']
-        mentioned_userid=user[3:len(user)-1] # save the challenged user's id, parsing the discord mention
-
+        mentioned_userid=int(re.search(pattern=r'\d+', string=user).group()) # save the challenged user's id, parsing the discord mention
         # if the parsed id is a guild member id, begin the match
         for member in self.bot.users:
             if (int(mentioned_userid)==int(member.id)):

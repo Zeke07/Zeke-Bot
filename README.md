@@ -6,7 +6,7 @@ Motive:
 
 Working Tools: Discord 2.0 API, MongoDB, BS4, GCP (for deployment)
 
-Help: endlessly wrangling api documentation, stackoverflow, and a thanks to my friend Ankit for teaching me about the databasing for this
+Help: endlessly wrangling api documentation, stackoverflow, and a thanks to my friend Ankit for showing me a good database platform for this
 
 ## Current Features
 
